@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
 
-EPOCHS = 10
+EPOCHS = 100
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 NUM_CATEGORIES = 43
@@ -45,40 +45,59 @@ def main():
 
 
 def load_data(data_dir):
+
+    print("Loading images and labels...")
+
     images, labels = [], []
 
-    # Abrindo a pasta data_dir
+    current_dir = os.getcwd()
+    data_dir = os.path.join(current_dir, data_dir)
+    print(f"Main Folder acessed now is the folder: {data_dir}")
+    # Abrindo a pasta data_dir 
     if os.path.exists(data_dir):
-        print(f"Folder acessed now is the folder{data_dir}")
         for folder in os.listdir(data_dir):
-            # labels.append(int(folder))
-            print(f"Folder acessed now is the folder{folder}")
-            for file in os.listdir(os.path.join(data_dir, folder)):
-                image = cv2.imread(os.path.join(data_dir, folder, file))
-                image = cv2.resize(image, (IMG_WIDTH, IMG_HEIGHT))
-                images.append(image)
-            
-    
-    print(f"Invalid directory")
+            print(f"Acessing Subfolder: {folder}")
+            current_sub_dir = os.path.join(data_dir, folder)
+            if folder != ".DS_Store":                
+                for file in os.listdir(current_sub_dir):
+                    labels.append(int(folder))
+                    image = cv2.imread(os.path.join(current_sub_dir, file))
+                    image_resized = cv2.resize(image, (IMG_WIDTH, IMG_HEIGHT))
+                    image = image_resized / 255.0
+                    images.append(image_resized)
+    else:          
+        print(f"Invalid directory")
 
+    print("Images and labels read successfully")
+    print(f"Images: {len(images)}")
+    print(f"Labels: {len(labels)}")
+    print(f"Unique Labels: {len(set(labels))}")
     return (images, labels)
-    """
-    Load image data from directory `data_dir`.
-
-    Assume `data_dir` has one directory named after each category, numbered
-    0 through NUM_CATEGORIES - 1. Inside each category directory will be some
-    number of image files.
-
-    Return tuple `(images, labels)`. `images` should be a list of all
-    of the images in the data directory, where each image is formatted as a
-    numpy ndarray with dimensions IMG_WIDTH x IMG_HEIGHT x 3. `labels` should
-    be a list of integer labels, representing the categories for each of the
-    corresponding `images`.
-    """
-    raise NotImplementedError
-
 
 def get_model():
+
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        ),
+
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+
+        tf.keras.layers.Flatten(),
+
+        tf.keras.layers.Dense(128, activation="relu"),
+        tf.keras.layers.Dropout(0.5),
+
+        tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
+    ])
+
+    model.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
+    )
+
+    return model
     """
     Returns a compiled convolutional neural network model. Assume that the
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
