@@ -45,6 +45,23 @@ def main():
 
 
 def load_data(data_dir):
+    images, labels = [], []
+
+    # Abrindo a pasta data_dir
+    if os.path.exists(data_dir):
+        print(f"Folder acessed now is the folder{data_dir}")
+        for folder in os.listdir(data_dir):
+            # labels.append(int(folder))
+            print(f"Folder acessed now is the folder{folder}")
+            for file in os.listdir(os.path.join(data_dir, folder)):
+                image = cv2.imread(os.path.join(data_dir, folder, file))
+                image = cv2.resize(image, (IMG_WIDTH, IMG_HEIGHT))
+                images.append(image)
+            
+    
+    print(f"Invalid directory")
+
+    return (images, labels)
     """
     Load image data from directory `data_dir`.
 
